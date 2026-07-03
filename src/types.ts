@@ -1,7 +1,4 @@
 // Tipos compartidos de la app.
-// La recurrencia (recurrenceType, etc.) ya existe en el modelo de datos
-// para que la Fase 3 no necesite migrar la base de datos, pero en la
-// Fase 1 todas las tareas se crean con recurrenceType = 'none'.
 
 export type RecurrenceType = 'none' | 'daily' | 'weekdays' | 'weekly' | 'custom';
 
@@ -15,16 +12,35 @@ export interface Category {
 export interface Task {
   id: number;
   title: string;
-  date: string; // formato YYYY-MM-DD
+  date: string; // formato YYYY-MM-DD (para recurrentes: fecha de inicio de la serie)
   startTime: string; // formato HH:MM (24h)
   durationMinutes: number;
   categoryId: number | null;
+  // Para tareas recurrentes, isCompleted se refiere al dia consultado
+  // (se guarda por ocurrencia en la tabla task_completions).
   isCompleted: boolean;
   notes: string | null;
   reminderMinutesBefore: number | null;
   recurrenceType: RecurrenceType;
   recurrenceDaysOfWeek: string | null; // JSON de numeros 0-6 (0 = domingo)
   recurrenceEndDate: string | null;
+  // Contadores de subtareas (calculados en la consulta).
+  subtaskTotal: number;
+  subtaskDone: number;
+}
+
+export interface Subtask {
+  id: number;
+  taskId: number;
+  title: string;
+  isDone: boolean;
+  position: number;
+}
+
+// Subtarea en edicion dentro del formulario (aun sin id si es nueva).
+export interface SubtaskDraft {
+  title: string;
+  isDone: boolean;
 }
 
 export interface NewTaskInput {
@@ -34,4 +50,7 @@ export interface NewTaskInput {
   durationMinutes: number;
   categoryId: number | null;
   notes?: string | null;
+  recurrenceType: RecurrenceType;
+  recurrenceDaysOfWeek: number[] | null; // solo para type 'custom'
+  recurrenceEndDate?: string | null;
 }

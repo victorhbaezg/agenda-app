@@ -22,7 +22,7 @@ export default function App() {
           <RootNavigator />
         </SQLiteProvider>
       </Suspense>
-      <StatusBar style="auto" />
+      <StatusBar style="light" />
     </SafeAreaProvider>
   );
 }

@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(ls \"c:/Users/hucom/Desktop/App de Agenda/App de organización \\(Agenda\\)/AgendaApp\")",
+      "Bash(ls -la \"c:/Users/hucom/Desktop/App de Agenda/App de organización \\(Agenda\\)/AgendaApp/.git/\")",
+      "Bash(cat \"c:/Users/hucom/Desktop/App de Agenda/App de organización \\(Agenda\\)/AgendaApp/.git/config\")"
+    ],
+    "additionalDirectories": [
+      "c:\\Users\\hucom\\Desktop\\App de Agenda\\App de organización (Agenda)\\AgendaApp\\.git"
+    ]
+  }
+}

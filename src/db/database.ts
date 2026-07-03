@@ -12,7 +12,7 @@ const DEFAULT_CATEGORIES: Array<{ name: string; color: string; icon: string }> =
 // la app. Crea el esquema completo, incluyendo columnas que hoy no se usan
 // desde la UI (recordatorios, recurrencia) para no tener que migrar despues.
 export async function migrateDbIfNeeded(db: SQLiteDatabase): Promise<void> {
-  const DATABASE_VERSION = 1;
+  const DATABASE_VERSION = 2;
   const result = await db.getFirstAsync<{ user_version: number }>(
     'PRAGMA user_version'
   );
@@ -67,6 +67,33 @@ export async function migrateDbIfNeeded(db: SQLiteDatabase): Promise<void> {
     }
 
     currentVersion = 1;
+  }
+
+  if (currentVersion === 1) {
+    // v2 (Fase 3):
+    // - task_completions: marca de completado POR DIA para tareas recurrentes
+    //   (una tarea diaria completada hoy no debe aparecer completada manana).
+    // - subtasks: checklist dentro de una tarea.
+    await db.execAsync(`
+      CREATE TABLE IF NOT EXISTS task_completions (
+        task_id INTEGER NOT NULL,
+        date TEXT NOT NULL,
+        PRIMARY KEY (task_id, date)
+      );
+
+      CREATE TABLE IF NOT EXISTS subtasks (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        task_id INTEGER NOT NULL,
+        title TEXT NOT NULL,
+        is_done INTEGER NOT NULL DEFAULT 0,
+        position INTEGER NOT NULL DEFAULT 0
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_subtasks_task ON subtasks(task_id);
+      CREATE INDEX IF NOT EXISTS idx_tasks_recurrence ON tasks(recurrence_type);
+    `);
+
+    currentVersion = 2;
   }
 
   await db.execAsync(`PRAGMA user_version = ${DATABASE_VERSION}`);

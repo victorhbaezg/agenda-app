@@ -43,6 +43,16 @@ export interface SubtaskDraft {
   isDone: boolean;
 }
 
+// Nota suelta (sin fecha): bandeja de entrada de cosas por planear.
+export interface Note {
+  id: number;
+  content: string;
+  categoryId: number | null;
+  isPinned: boolean;
+  createdAt: string; // ISO datetime (UTC)
+  archivedAt: string | null;
+}
+
 export interface NewTaskInput {
   title: string;
   date: string;
@@ -50,6 +60,8 @@ export interface NewTaskInput {
   durationMinutes: number;
   categoryId: number | null;
   notes?: string | null;
+  // null = sin recordatorio; 0 = a la hora exacta; N = N minutos antes.
+  reminderMinutesBefore: number | null;
   recurrenceType: RecurrenceType;
   recurrenceDaysOfWeek: number[] | null; // solo para type 'custom'
   recurrenceEndDate?: string | null;

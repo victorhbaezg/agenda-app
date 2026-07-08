@@ -12,7 +12,7 @@ const DEFAULT_CATEGORIES: Array<{ name: string; color: string; icon: string }> =
 // la app. Crea el esquema completo, incluyendo columnas que hoy no se usan
 // desde la UI (recordatorios, recurrencia) para no tener que migrar despues.
 export async function migrateDbIfNeeded(db: SQLiteDatabase): Promise<void> {
-  const DATABASE_VERSION = 2;
+  const DATABASE_VERSION = 4;
   const result = await db.getFirstAsync<{ user_version: number }>(
     'PRAGMA user_version'
   );
@@ -94,6 +94,39 @@ export async function migrateDbIfNeeded(db: SQLiteDatabase): Promise<void> {
     `);
 
     currentVersion = 2;
+  }
+
+  if (currentVersion === 2) {
+    // v3 (Notas): notas sueltas sin fecha, estilo "bandeja de entrada".
+    // Se capturan rapido y luego se pueden convertir en tarea (al hacerlo
+    // se archivan via archived_at, no se borran).
+    await db.execAsync(`
+      CREATE TABLE IF NOT EXISTS notes (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        content TEXT NOT NULL,
+        category_id INTEGER REFERENCES categories(id) ON DELETE SET NULL,
+        is_pinned INTEGER NOT NULL DEFAULT 0,
+        created_at TEXT NOT NULL DEFAULT (datetime('now')),
+        archived_at TEXT
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_notes_archived ON notes(archived_at);
+    `);
+
+    currentVersion = 3;
+  }
+
+  if (currentVersion === 3) {
+    // v4 (Fase 4, recordatorios): tabla generica de ajustes clave-valor.
+    // Hoy solo guarda el interruptor global de recordatorios.
+    await db.execAsync(`
+      CREATE TABLE IF NOT EXISTS settings (
+        key TEXT PRIMARY KEY,
+        value TEXT NOT NULL
+      );
+    `);
+
+    currentVersion = 4;
   }
 
   await db.execAsync(`PRAGMA user_version = ${DATABASE_VERSION}`);

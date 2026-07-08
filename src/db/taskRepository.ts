@@ -111,14 +111,16 @@ export async function getTaskById(db: SQLiteDatabase, id: number): Promise<Task 
 export async function createTask(db: SQLiteDatabase, input: NewTaskInput): Promise<number> {
   const result = await db.runAsync(
     `INSERT INTO tasks (title, date, start_time, duration_minutes, category_id, notes,
+                        reminder_minutes_before,
                         recurrence_type, recurrence_days_of_week, recurrence_end_date)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     input.title,
     input.date,
     input.startTime,
     input.durationMinutes,
     input.categoryId,
     input.notes ?? null,
+    input.reminderMinutesBefore,
     input.recurrenceType,
     input.recurrenceDaysOfWeek ? JSON.stringify(input.recurrenceDaysOfWeek) : null,
     input.recurrenceEndDate ?? null
@@ -134,6 +136,7 @@ export async function updateTask(
   await db.runAsync(
     `UPDATE tasks
      SET title = ?, date = ?, start_time = ?, duration_minutes = ?, category_id = ?, notes = ?,
+         reminder_minutes_before = ?,
          recurrence_type = ?, recurrence_days_of_week = ?, recurrence_end_date = ?
      WHERE id = ?`,
     input.title,
@@ -142,6 +145,7 @@ export async function updateTask(
     input.durationMinutes,
     input.categoryId,
     input.notes ?? null,
+    input.reminderMinutesBefore,
     input.recurrenceType,
     input.recurrenceDaysOfWeek ? JSON.stringify(input.recurrenceDaysOfWeek) : null,
     input.recurrenceEndDate ?? null,
